@@ -1,0 +1,26 @@
+{
+    "name": "node-xboxapi",
+    "version": "0.0.1",
+    "description": "Unofficial xbox api library scraper for node",
+    "keywords": [
+            "node",
+            "api",
+            "scraper",
+            "xbox api"
+    ],
+    "main": "./libs/xbox.api",
+    "author": "Ismael Gorissen <ismael.gorissen@gmail.com>",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/igorissen/node-XboxAPI.git"
+    },
+    "bugs": {
+        "url": "https://github.com/igorissen/node-XboxAPI/issues"
+    },
+    "engines": [
+            "node >= 0.6"
+    ],
+    "directories": {
+        "libs": "libs"
+    }
+}
