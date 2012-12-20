@@ -35,50 +35,20 @@ uxa.profile('fallenbe', function(data, err)
 
 ####Retrieve user friends list
 
-```
-uxa.friends('fallenbe', function(data, err)
-{
- if (err)
- {
-  // do something with err object
- }
- else
- {
-  // do something with data
- }
-});
+```javascript
+uxa.friends('fallenbe', function(data, err) { ... });
 ```
 
 ####Retrieve user games list
 
-```
-uxa.games('fallenbe', function(data, err)
-{
- if (err)
- {
-  // do something with err object
- }
- else
- {
-  // do something with data
- }
-});
+```javascript
+uxa.games('fallenbe', function(data, err) { ... });
 ```
 
 ####Retrieve game achievements list
 
-```
-uxa.achievements('fallenbe', '1414793202', function(data, err)
-{
- if (err)
- {
-  // do something with err object
- }
- else
- {
-  // do something with data
- }
-});
+```javascript
+uxa.achievements('fallenbe', '1414793202', function(data, err) { ... });
 ```
 
 ##Changelog
