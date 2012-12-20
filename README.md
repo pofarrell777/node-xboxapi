@@ -12,27 +12,24 @@ $ npm install node-xboxapi
 ##Usage
 ===
 
-**IMPORTANT**: There is a limit of 150 requests per day
+**IMPORTANT**: There is a limit of 150 requests per hour
 
 ####Load in the module
 
-```
+```javascript
 var uxa = require('node-xboxapi');
 ```
 
 ####Retrieve user profile
 
-```
+```javascript
 uxa.profile('fallenbe', function(data, err)
 {
- if (err)
- {
-  // do something with err object
- }
- else
- {
-  // do something with data
- }
+    if (err) {
+        // do something when en error occured
+    } else {
+        // do something when there is no error
+    }
 });
 ```
 
