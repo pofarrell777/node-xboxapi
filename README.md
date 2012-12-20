@@ -12,7 +12,9 @@ $ npm install node-xboxapi
 ##Usage
 ===
 
-**IMPORTANT**: There is a limit of 150 requests per hour
+**IMPORTANT**:
+* There is a limit of **150** requests per hour
+* The response will be in **JSON** format
 
 ####Load in the module
 
