@@ -12,45 +12,76 @@ $ npm install node-xboxapi
 ##Usage
 ===
 
-**IMPORTANT**:
-* There is a limit of **150** requests per hour
-* The response will be in **JSON** format
+**IMPORTANT**: There is a limit of 150 requests per day
 
 ####Load in the module
 
-```javascript
+```
 var uxa = require('node-xboxapi');
 ```
 
 ####Retrieve user profile
 
-```javascript
+```
 uxa.profile('fallenbe', function(data, err)
 {
-    if (err) {
-        // do something when en error occured
-    } else {
-        // do something when there is no error
-    }
+ if (err)
+ {
+  // do something with err object
+ }
+ else
+ {
+  // do something with data
+ }
 });
 ```
 
 ####Retrieve user friends list
 
-```javascript
-uxa.friends('fallenbe', function(data, err) { ... });
+```
+uxa.friends('fallenbe', function(data, err)
+{
+ if (err)
+ {
+  // do something with err object
+ }
+ else
+ {
+  // do something with data
+ }
+});
 ```
 
 ####Retrieve user games list
 
-```javascript
-uxa.games('fallenbe', function(data, err) { ... });
+```
+uxa.games('fallenbe', function(data, err)
+{
+ if (err)
+ {
+  // do something with err object
+ }
+ else
+ {
+  // do something with data
+ }
+});
 ```
 
 ####Retrieve game achievements list
 
-```javascript
-uxa.achievements('fallenbe', '1414793202', function(data, err) { ... });
+```
+uxa.achievements('fallenbe', '1414793202', function(data, err)
+{
+ if (err)
+ {
+  // do something with err object
+ }
+ else
+ {
+  // do something with data
+ }
+});
 ```
 
 ##Changelog
