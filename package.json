@@ -1,6 +1,6 @@
 {
     "name": "node-xboxapi",
-    "version": "0.1.3",
+    "version": "0.1.4",
     "description": "Unofficial xbox api library scraper for node",
     "keywords": [
             "node",
