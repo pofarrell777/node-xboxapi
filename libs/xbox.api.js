@@ -27,27 +27,33 @@ var XboxApi = function XboxApi() {
     this.fetchDataFor = function (method, params, callback) {
         if (method) {
             if (params && typeof params === 'object') {
-                switch (method) {
-                    case 'profile':
-                        profile(params, callback);
-                        break;
-                    case 'friends':
-                        friends(params, callback);
-                        break;
-                    case 'games':
-                        games(params, callback);
-                        break;
-                    case 'achievements':
-                        achievements(params, callback);
-                        break;
-                    default:
-                        return new Error('Method not found');
-                }
+                limitCheck(function (err) {
+                    if (err) {
+                        callback(err);
+                    } else {
+                        switch (method) {
+                            case 'profile':
+                                profile(params, callback);
+                                break;
+                            case 'friends':
+                                friends(params, callback);
+                                break;
+                            case 'games':
+                                games(params, callback);
+                                break;
+                            case 'achievements':
+                                achievements(params, callback);
+                                break;
+                            default:
+                                callback(new Error('Method not found'));
+                        }
+                    }
+                });
             } else {
-                return new Error('Undefined JSON object');
+                callback(new Error('Undefined JSON object'));
             }
         } else {
-            return new Error('Undefined method');
+            callback(new Error('Undefined method'));
         }
     }
 
@@ -69,7 +75,7 @@ var XboxApi = function XboxApi() {
             if (_GAMERTAG_ATTEMPTS[params.gamertag + '.profile']) {
                 var now = new Date().getTime();
 
-                if (now >= (_GAMERTAG_ATTEMPTS[params.gamertag + '.profile'].date + (60 * 60 * 1000))) {
+                if (now >= (_GAMERTAG_ATTEMPTS[params.gamertag + '.profile'].date + (15 * 60 * 1000))) {
                     _GAMERTAG_ATTEMPTS[params.gamertag + '.profile'].attempts = 1;
                 }
 
@@ -111,7 +117,7 @@ var XboxApi = function XboxApi() {
             if (_GAMERTAG_ATTEMPTS[params.gamertag + '.friends']) {
                 var now = new Date().getTime();
 
-                if (now >= (_GAMERTAG_ATTEMPTS[params.gamertag + '.friends'].date + (60 * 60 * 1000))) {
+                if (now >= (_GAMERTAG_ATTEMPTS[params.gamertag + '.friends'].date + (15 * 60 * 1000))) {
                     _GAMERTAG_ATTEMPTS[params.gamertag + '.friends'].attempts = 1;
                 }
 
@@ -153,7 +159,7 @@ var XboxApi = function XboxApi() {
             if (_GAMERTAG_ATTEMPTS[params.gamertag + '.games']) {
                 var now = new Date().getTime();
 
-                if (now >= (_GAMERTAG_ATTEMPTS[params.gamertag + '.games'].date + (60 * 60 * 1000))) {
+                if (now >= (_GAMERTAG_ATTEMPTS[params.gamertag + '.games'].date + (15 * 60 * 1000))) {
                     _GAMERTAG_ATTEMPTS[params.gamertag + '.games'].attempts = 1;
                 }
 
@@ -195,7 +201,7 @@ var XboxApi = function XboxApi() {
             if (_GAMERTAG_ATTEMPTS[params.gamertag + '.achievements']) {
                 var now = new Date().getTime();
 
-                if (now >= (_GAMERTAG_ATTEMPTS[params.gamertag + '.achievements'].date + (60 * 60 * 1000))) {
+                if (now >= (_GAMERTAG_ATTEMPTS[params.gamertag + '.achievements'].date + (15 * 60 * 1000))) {
                     _GAMERTAG_ATTEMPTS[params.gamertag + '.achievements'].attempts = 1;
                 }
 
@@ -239,29 +245,25 @@ var XboxApi = function XboxApi() {
                 try {
                     var json = JSON.parse(data);
 
-                    if (limitCheck(json.API_Limit)) {
-                        if (json.Success == true) {
-                            cb(null, json);
-                        } else {
-                            switch (fn) {
-                                case 'profile':
-                                    profile(params, cb);
-                                    break;
-                                case 'friends':
-                                    friends(params, cb);
-                                    break;
-                                case 'games':
-                                    games(params, cb);
-                                    break;
-                                case 'achievements':
-                                    achievements(params, cb);
-                                    break;
-                                default:
-                                    cb(new Error('Function not found'));
-                            }
-                        }
+                    if (json.Success == true) {
+                        cb(null, json);
                     } else {
-                        cb(new Error('API Limit has been reached'));
+                        switch (fn) {
+                            case 'profile':
+                                profile(params, cb);
+                                break;
+                            case 'friends':
+                                friends(params, cb);
+                                break;
+                            case 'games':
+                                games(params, cb);
+                                break;
+                            case 'achievements':
+                                achievements(params, cb);
+                                break;
+                            default:
+                                cb(new Error('Function not found'));
+                        }
                     }
                 } catch (e) {
                     switch (fn) {
@@ -328,16 +330,35 @@ var XboxApi = function XboxApi() {
     /**
      * Check if API limit exceeded.
      *
-     * @param apiLimit - API limit response
-     * @return {Boolean}
+     * @param cb - callback function
      */
-    function limitCheck(apiLimit) {
-        var result = apiLimit.split('/');
+    function limitCheck(cb) {
+        var req = https.request({host:'xboxapi.com', path:'/limit'}, function (res) {
+            var data = '';
 
-        _API_LIMIT_CURRENT = parseInt(result[0]);
-        _API_LIMIT = parseInt(result[1]);
+            res.on('data', function (chunk) {
+                data += chunk;
+            });
 
-        return _API_LIMIT_CURRENT < _API_LIMIT;
+            res.on('end', function () {
+                var limit = data.split('/');
+
+                _API_LIMIT_CURRENT = parseInt(limit[0]);
+                _API_LIMIT = parseInt(limit[1]);
+
+                _API_LIMIT_CURRENT < _API_LIMIT ? cb() : cb(new Error('API limit exceeded'));
+            });
+
+            res.on('error', function (err) {
+                cb(err);
+            });
+        });
+
+        req.on('error', function (err) {
+            cb(err);
+        });
+
+        req.end();
     }
 }
 
