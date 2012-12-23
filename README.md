@@ -57,7 +57,7 @@ uxa.fetchDataFor('achievements', { gamertag:'fallenbe', game_id:1414793202 }, fu
 
 ##Credits
 ===
-Thanks to: [Alan Wynn][djekl]
+Thanks to: [Alan Wynn](https://github.com/djekl)
 
 ##Changelog
 ===
