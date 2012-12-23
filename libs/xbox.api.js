@@ -1,133 +1,233 @@
-/**
- * Required modules.
- */
 var https = require('https');
 
+var _API_LIMIT = 150,
+    _API_LIMIT_CURRENT = 0;
 
 /**
+ * Create XboxApi object.
+ *
  * @constructor
  */
 var XboxApi = function XboxApi() {
+    var _REQUESTS_LIMIT = 5,
+        _GAMERTAG_ATTEMPTS = {};
 
-    /**
-     * Retrieve the profile for a gamertag.
-     *
-     * @param gamertag
-     * @param callback
-     */
-    this.profile = function (gamertag, callback) {
-        if (gamertag) {
-            var opts = {
-                host:'xboxapi.com',
-                path:'/profile/' + gamertag
-            };
-
-            fetchData(opts, function (data, err) {
-                if (err) {
-                    callback(null, err);
-                } else {
-                    callback(data, null);
-                }
-            });
-        }
-        else {
-            callback(null, new Error('Undefined gamertag'));
-        }
+    if (XboxApi.caller != XboxApi.getInstance) {
+        throw new Error('A new instance can not be set for this object');
     }
 
-
     /**
-     * retrieve the friend list for a gamertag.
+     * Fetch JSON data.
      *
-     * @param gamertag
-     * @param callback
+     * @param method - method to use (profile, ...)
+     * @param params - parameters used to make https request
+     * @param callback - callback function
+     * @return {Error}
      */
-    this.friends = function (gamertag, callback) {
-        if (gamertag) {
-            var opts = {
-                host:'xboxapi.com',
-                path:'/friends/' + gamertag
-            };
-
-            fetchData(opts, function (data, err) {
-                if (err) {
-                    callback(null, err);
-                } else {
-                    callback(data, null);
+    this.fetchDataFor = function (method, params, callback) {
+        if (method) {
+            if (params && typeof params === 'object') {
+                switch (method) {
+                    case 'profile':
+                        profile(params, callback);
+                        break;
+                    case 'friends':
+                        friends(params, callback);
+                        break;
+                    case 'games':
+                        games(params, callback);
+                        break;
+                    case 'achievements':
+                        achievements(params, callback);
+                        break;
+                    default:
+                        return new Error('Method not found');
                 }
-            });
-        }
-        else {
-            callback(null, new Error('Undefined gamertag'));
-        }
-    }
-
-
-    /**
-     * Retrieve the game list for a gamertag.
-     *
-     * @param gamertag
-     * @param callback
-     */
-    this.games = function (gamertag, callback) {
-        if (gamertag) {
-            var opts = {
-                host:'xboxapi.com',
-                path:'/games/' + gamertag
-            };
-
-            fetchData(opts, function (data, err) {
-                if (err) {
-                    callback(null, err);
-                } else {
-                    callback(data, null);
-                }
-            });
-        }
-        else {
-            callback(null, new Error('Undefined gamertag'));
-        }
-    }
-
-
-    /**
-     * Retrieve the achievement list of a game for a gamertag.
-     *
-     * @param gamertag
-     * @param gameId
-     * @param callback
-     */
-    this.achievements = function (gamertag, gameId, callback) {
-        if (gamertag) {
-            if (gameId) {
-                var opts = {
-                    host:'xboxapi.com',
-                    path:'/achievements/' + gameId + '/' + gamertag
-                };
-
-                fetchData(opts, function (data, err) {
-                    if (err) {
-                        callback(null, err);
-                    } else {
-                        callback(data, null);
-                    }
-                });
             } else {
-                callback(null, new Error('Undefined game ID'));
+                return new Error('Undefined JSON object');
             }
         } else {
-            callback(null, new Error('Undefined gamertag'));
+            return new Error('Undefined method');
         }
     }
 
+    /**
+     * Fetch gamertag profile.
+     *
+     * @param params - parameters used to make https request
+     * @param cb - callback function
+     */
+    function profile(params, cb) {
+        if (params.gamertag) {
+            var opts = {
+                host:'xboxapi.com',
+                path:'/profile/' + params.gamertag
+            };
+
+            console.log(_GAMERTAG_ATTEMPTS);
+
+            if (_GAMERTAG_ATTEMPTS[params.gamertag + '.profile']) {
+                var now = new Date().getTime();
+
+                if (now >= (_GAMERTAG_ATTEMPTS[params.gamertag + '.profile'].date + (60 * 60 * 1000))) {
+                    _GAMERTAG_ATTEMPTS[params.gamertag + '.profile'].attempts = 1;
+                }
+
+                if (_GAMERTAG_ATTEMPTS[params.gamertag + '.profile'].attempts < _REQUESTS_LIMIT) {
+                    _GAMERTAG_ATTEMPTS[params.gamertag + '.profile'].attempts += 1;
+
+                    makeHttpsRequest('profile', params, opts, cb);
+                } else {
+                    cb(new Error('Requests limit exceeded for this gamertag'));
+                }
+            } else {
+                _GAMERTAG_ATTEMPTS[params.gamertag + '.profile'] = {
+                    date:new Date().getTime(),
+                    attempts:1
+                };
+
+                makeHttpsRequest('profile', params, opts, cb);
+            }
+        } else {
+            cb(new Error('Undefined gamertag property'));
+        }
+    }
 
     /**
-     * Fetch the JSON data from xboxapi.com.
+     * Fetch gamertag friends list.
      *
-     * @param opts
-     * @param callback
+     * @param params  - parameters used to make https request
+     * @param cb - callback function
      */
-    function fetchData(opts, callback) {
+    function friends(params, cb) {
+        if (params.gamertag) {
+            var opts = {
+                host:'xboxapi.com',
+                path:'/friends/' + params.gamertag
+            };
+
+            console.log(_GAMERTAG_ATTEMPTS);
+
+            if (_GAMERTAG_ATTEMPTS[params.gamertag + '.friends']) {
+                var now = new Date().getTime();
+
+                if (now >= (_GAMERTAG_ATTEMPTS[params.gamertag + '.friends'].date + (60 * 60 * 1000))) {
+                    _GAMERTAG_ATTEMPTS[params.gamertag + '.friends'].attempts = 1;
+                }
+
+                if (_GAMERTAG_ATTEMPTS[params.gamertag + '.friends'].attempts < _REQUESTS_LIMIT) {
+                    _GAMERTAG_ATTEMPTS[params.gamertag + '.friends'].attempts += 1;
+
+                    makeHttpsRequest('friends', params, opts, cb);
+                } else {
+                    cb(new Error('Requests limit exceeded for this gamertag'));
+                }
+            } else {
+                _GAMERTAG_ATTEMPTS[params.gamertag + '.friends'] = {
+                    date:new Date().getTime(),
+                    attempts:1
+                };
+
+                makeHttpsRequest('friends', params, opts, cb);
+            }
+        } else {
+            cb(new Error('Undefined gamertag property'));
+        }
+    }
+
+    /**
+     * Fetch gamertag games list.
+     *
+     * @param params - parameters used to make https request
+     * @param cb - callback function
+     */
+    function games(params, cb) {
+        if (params.gamertag) {
+            var opts = {
+                host:'xboxapi.com',
+                path:'/games/' + params.gamertag
+            };
+
+            console.log(_GAMERTAG_ATTEMPTS);
+
+            if (_GAMERTAG_ATTEMPTS[params.gamertag + '.games']) {
+                var now = new Date().getTime();
+
+                if (now >= (_GAMERTAG_ATTEMPTS[params.gamertag + '.games'].date + (60 * 60 * 1000))) {
+                    _GAMERTAG_ATTEMPTS[params.gamertag + '.games'].attempts = 1;
+                }
+
+                if (_GAMERTAG_ATTEMPTS[params.gamertag + '.games'].attempts < _REQUESTS_LIMIT) {
+                    _GAMERTAG_ATTEMPTS[params.gamertag + '.games'].attempts += 1;
+
+                    makeHttpsRequest('games', params, opts, cb);
+                } else {
+                    cb(new Error('Requests limit exceeded for this gamertag'));
+                }
+            } else {
+                _GAMERTAG_ATTEMPTS[params.gamertag + '.games'] = {
+                    date:new Date().getTime(),
+                    attempts:1
+                };
+
+                makeHttpsRequest('games', params, opts, cb);
+            }
+        } else {
+            cb(new Error('Undefined gamertag property'));
+        }
+    }
+
+    /**
+     * Fetch game achievements list for a gamertag.
+     *
+     * @param params - parameters used to make https request
+     * @param cb - callback function
+     */
+    function achievements(params, cb) {
+        if (params.gamertag && params.game_id) {
+            var opts = {
+                host:'xboxapi.com',
+                path:'/achievements/' + params.game_id + '/' + params.gamertag
+            };
+
+            console.log(_GAMERTAG_ATTEMPTS);
+
+            if (_GAMERTAG_ATTEMPTS[params.gamertag + '.achievements']) {
+                var now = new Date().getTime();
+
+                if (now >= (_GAMERTAG_ATTEMPTS[params.gamertag + '.achievements'].date + (60 * 60 * 1000))) {
+                    _GAMERTAG_ATTEMPTS[params.gamertag + '.achievements'].attempts = 1;
+                }
+
+                if (_GAMERTAG_ATTEMPTS[params.gamertag + '.achievements'].attempts < _REQUESTS_LIMIT) {
+                    _GAMERTAG_ATTEMPTS[params.gamertag + '.achievements'].attempts += 1;
+
+                    makeHttpsRequest('achievements', params, opts, cb);
+                } else {
+                    cb(new Error('Requests limit exceeded for this gamertag'));
+                }
+            } else {
+                _GAMERTAG_ATTEMPTS[params.gamertag + '.achievements'] = {
+                    date:new Date().getTime(),
+                    attempts:1
+                };
+
+                makeHttpsRequest('achievements', params, opts, cb);
+            }
+        } else {
+            cb(new Error('Undefined gamertag and/or game_id properties'));
+        }
+    }
+
+    /**
+     * Make an HTTPS request.
+     *
+     * @param fn - function to call when an error occurs
+     * @param params - parameters used to make https request
+     * @param opts - https header options
+     * @param cb - callback function
+     */
+    function makeHttpsRequest(fn, params, opts, cb) {
         var req = https.request(opts, function (res) {
             var data = '';
 
@@ -141,60 +241,110 @@ var XboxApi = function XboxApi() {
 
                     if (limitCheck(json.API_Limit)) {
                         if (json.Success == true) {
-                            callback(json, null);
+                            cb(null, json);
                         } else {
-                            callback(null, json.Error);
+                            switch (fn) {
+                                case 'profile':
+                                    profile(params, cb);
+                                    break;
+                                case 'friends':
+                                    friends(params, cb);
+                                    break;
+                                case 'games':
+                                    games(params, cb);
+                                    break;
+                                case 'achievements':
+                                    achievements(params, cb);
+                                    break;
+                                default:
+                                    cb(new Error('Function not found'));
+                            }
                         }
                     } else {
-                        callback(null, new Error('API Limit has been reached'));
+                        cb(new Error('API Limit has been reached'));
                     }
-                }
-                catch (e) {
-                    callback(null, e);
+                } catch (e) {
+                    switch (fn) {
+                        case 'profile':
+                            profile(params, cb);
+                            break;
+                        case 'friends':
+                            friends(params, cb);
+                            break;
+                        case 'games':
+                            games(params, cb);
+                            break;
+                        case 'achievements':
+                            achievements(params, cb);
+                            break;
+                        default:
+                            cb(new Error('Function not found'));
+                    }
                 }
             });
 
             res.on('error', function (err) {
-                callback(null, err);
+                switch (fn) {
+                    case 'profile':
+                        profile(params, cb);
+                        break;
+                    case 'friends':
+                        friends(params, cb);
+                        break;
+                    case 'games':
+                        games(params, cb);
+                        break;
+                    case 'achievements':
+                        achievements(params, cb);
+                        break;
+                    default:
+                        cb(new Error('Function not found'));
+                }
             });
         });
 
         req.on('error', function (err) {
-            callback(null, err);
+            switch (fn) {
+                case 'profile':
+                    profile(params, cb);
+                    break;
+                case 'friends':
+                    friends(params, cb);
+                    break;
+                case 'games':
+                    games(params, cb);
+                    break;
+                case 'achievements':
+                    achievements(params, cb);
+                    break;
+                default:
+                    cb(new Error('Function not found'));
+            }
         });
 
         req.end();
     }
 
-
     /**
-     * Check if the limit of requests per hour is reached.
+     * Check if API limit exceeded.
      *
-     * @param apiLimit
+     * @param apiLimit - API limit response
      * @return {Boolean}
      */
     function limitCheck(apiLimit) {
         var result = apiLimit.split('/');
 
-        var current = parseInt(result[0]),
-            limit = parseInt(result[1]);
+        _API_LIMIT_CURRENT = parseInt(result[0]);
+        _API_LIMIT = parseInt(result[1]);
 
-        return current < limit;
-    }
-
-
-    // Check if we try to create a new instance
-    if (XboxApi.caller != XboxApi.getInstance) {
-        throw new Error('A new instance can not be set for this object');
+        return _API_LIMIT_CURRENT < _API_LIMIT;
     }
 }
 
-
 XboxApi.instance = null;
 
-
 /**
- * Create or retrieve the scraper instance.
+ * Return or create an instance of XboxApi.
  *
  * @return {*}
  */
@@ -205,6 +355,5 @@ XboxApi.getInstance = function () {
 
     return this.instance;
 }
-
 
 module.exports = XboxApi.getInstance();
