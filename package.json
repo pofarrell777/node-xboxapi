@@ -22,5 +22,8 @@
     ],
     "directories": {
         "libs": "libs"
-    }
+    },
+    "contributors": [
+        "Alan Wynn <support@xboxapi.com> (https://xboxapi.com/)"
+    ]
 }
