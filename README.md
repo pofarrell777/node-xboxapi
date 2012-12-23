@@ -14,8 +14,9 @@ $ npm install node-xboxapi
 
 **IMPORTANT**:
 
-* There is a limit of requests per day
-* This limit can change
+* There is a limit of requests per hour (default to 150).
+* This limit can change.
+* Also, there is a limit of requests attempts (default to 5) to avoid an IP ban from xboxapi.com. Each method will try, when there is an error, to make the same request.
 
 ####Load in the module
 
@@ -24,12 +25,9 @@ var uxa = require('node-xboxapi');
 ```
 
 ####Retrieve user profile
-#####Parameters
-* gamertag
-* callback
 
 ```
-uxa.profile('fallenbe', function(data, err)
+uxa.fetchDataFor('profile', { gamertag:'fallenbe' }, function(data, err)
 {
     if (err) {
         // do something
@@ -40,35 +38,34 @@ uxa.profile('fallenbe', function(data, err)
 ```
 
 ####Retrieve user friends list
-#####Parameters
-* gamertag
-* callback
 
 ```
-uxa.friends('fallenbe', function(data, err) { … });
+uxa.fetchDataFor('friends', { gamertag:'fallenbe' }, function(data, err) { … });
 ```
 
 ####Retrieve user games list
-#####Parameters
-* gamertag
-* callback
 
 ```
-uxa.games('fallenbe', function(data, err) { … });
+uxa.fetchDataFor('games', { gamertag:'fallenbe' }, function(data, err) { … });
 ```
 
 ####Retrieve game achievements list
-#####Parameters
-* gamertag
-* game_id
-* callback
 
 ```
-uxa.achievements('fallenbe', '1414793202', function(data, err) { … });
+uxa.fetchDataFor('achievements', { gamertag:'fallenbe', game_id:1414793202 }, function(data, err) { … });
 ```
+
+##Credits
+===
+Thanks to: [Alan Wynn][djekl]
 
 ##Changelog
 ===
+0.1.3:
+
+* Added `_API_LIMIT` and `_API_LIMIT_CURRENT` as global variables. These variables will be updated after each request with `api_limit` response text.
+* Added `_REQUESTS_LIMIT` and `_GAMERTAG_ATTEMPTS`. Each gamertag for each method can make 5 requests max when there is an error. If the gamertag attempts for one method has exceeded, you must wait for `1 hour` before make new requests.
+
 0.1.2:
 
 * Only change the module version (Major.Minor.Patch).
